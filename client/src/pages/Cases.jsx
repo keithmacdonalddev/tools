@@ -1,5 +1,5 @@
-// client/src/pages/Cases.jsx
 import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
 import {
     selectFilteredCases,
     selectViewType,
@@ -10,7 +10,7 @@ import {
     setSearchQuery,
     fetchCases,
 } from '../features/cases/slice/casesSlice';
-import { useEffect } from 'react';
+import CaseForm from '../features/cases/components/CaseForm';
 
 const Cases = () => {
     const dispatch = useDispatch();
@@ -19,6 +19,8 @@ const Cases = () => {
     const searchQuery = useSelector(selectSearchQuery);
     const status = useSelector(selectCasesStatus);
     const error = useSelector(selectCasesError);
+
+    const [showForm, setShowForm] = useState(false);
 
     // Fetch cases on component mount
     useEffect(() => {
@@ -34,6 +36,8 @@ const Cases = () => {
     const handleSearch = (e) => {
         dispatch(setSearchQuery(e.target.value));
     };
+
+    const toggleForm = () => setShowForm((prev) => !prev);
 
     // Loading state
     if (status === 'loading') {
@@ -205,8 +209,22 @@ const Cases = () => {
                     >
                         List
                     </button>
+                    <button
+                        onClick={toggleForm}
+                        className="px-4 py-2 bg-primary text-white rounded-lg 
+                                 hover:bg-primary-dark transition-colors"
+                    >
+                        {showForm ? 'Close Form' : 'Add New Case'}
+                    </button>
                 </div>
             </div>
+
+            {/* Case Form */}
+            {showForm && (
+                <div className="bg-dark-surface rounded-lg p-6 border border-primary/10">
+                    <CaseForm />
+                </div>
+            )}
 
             {/* Cases content container */}
             <div className="bg-dark-surface rounded-lg p-6 border border-primary/10">

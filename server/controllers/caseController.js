@@ -1,10 +1,9 @@
 // server/controllers/caseController.js
-
-const { Case, CustomField } = require('../models/caseModel');
-const AppError = require('../utils/appError');
+import { Case, CustomField } from '../models/caseModel.js';
+import AppError from '../utils/appError.js';
 
 // Get all cases with filtering and pagination
-exports.getCases = async (req, res, next) => {
+export const getCases = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -45,7 +44,7 @@ exports.getCases = async (req, res, next) => {
 };
 
 // Get single case by ID
-exports.getCase = async (req, res, next) => {
+export const getCase = async (req, res, next) => {
     try {
         const caseItem = await Case.findById(req.params.id);
 
@@ -63,7 +62,7 @@ exports.getCase = async (req, res, next) => {
 };
 
 // Create new case
-exports.createCase = async (req, res, next) => {
+export const createCase = async (req, res, next) => {
     try {
         const newCase = await Case.create(req.body);
 
@@ -81,7 +80,7 @@ exports.createCase = async (req, res, next) => {
 };
 
 // Update case
-exports.updateCase = async (req, res, next) => {
+export const updateCase = async (req, res, next) => {
     try {
         const updatedCase = await Case.findByIdAndUpdate(
             req.params.id,
@@ -103,7 +102,7 @@ exports.updateCase = async (req, res, next) => {
 };
 
 // Delete case
-exports.deleteCase = async (req, res, next) => {
+export const deleteCase = async (req, res, next) => {
     try {
         const caseItem = await Case.findByIdAndDelete(req.params.id);
 
@@ -121,7 +120,7 @@ exports.deleteCase = async (req, res, next) => {
 };
 
 // Custom Fields Controllers
-exports.getCustomFields = async (req, res, next) => {
+export const getCustomFields = async (req, res, next) => {
     try {
         const customFields = await CustomField.find();
 
@@ -134,7 +133,7 @@ exports.getCustomFields = async (req, res, next) => {
     }
 };
 
-exports.addCustomField = async (req, res, next) => {
+export const addCustomField = async (req, res, next) => {
     try {
         const newField = await CustomField.create(req.body);
 
@@ -147,7 +146,7 @@ exports.addCustomField = async (req, res, next) => {
     }
 };
 
-exports.deleteCustomField = async (req, res, next) => {
+export const deleteCustomField = async (req, res, next) => {
     try {
         const field = await CustomField.findByIdAndDelete(req.params.id);
 

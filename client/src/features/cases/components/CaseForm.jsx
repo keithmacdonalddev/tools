@@ -1,7 +1,6 @@
-// features/cases/components/CaseForm.jsx
-
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { addCase, selectFieldDefinitions } from '../slice/casesSlice';
 import DynamicField from './DynamicField';
 import CaseFieldManager from './CaseFieldManager';
@@ -48,7 +47,7 @@ const CaseForm = () => {
     };
 
     // Handle form submission
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!validateForm()) {
@@ -62,13 +61,32 @@ const CaseForm = () => {
             createdAt: new Date().toISOString(),
         };
 
-        dispatch(addCase(caseData));
+        try {
+            await dispatch(addCase(caseData)).unwrap();
 
-        // Reset form
-        setFormData({});
+            // Show success toast
+            toast.success('Case created successfully!', {
+                position: 'top-right',
+                autoClose: 3000, // Closes after 3 seconds
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
 
-        // Show success message or redirect
-        alert('Case created successfully!');
+            // Reset form after successful submission
+            setFormData({});
+        } catch (error) {
+            // Show error toast with error message from response
+            toast.error(`Error creating case: ${error}`, {
+                position: 'top-right',
+                autoClose: 5000,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
+
+            console.error('Failed to create case:', error); // Log error for debugging
+        }
     };
 
     return (

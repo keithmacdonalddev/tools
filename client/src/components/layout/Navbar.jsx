@@ -7,7 +7,6 @@ const Navbar = ({ className = '' }) => {
     const { theme, toggleTheme } = useTheme();
     const location = useLocation();
 
-    // Get page title based on current route
     const getPageTitle = () => {
         switch (location.pathname) {
             case '/':
@@ -23,37 +22,26 @@ const Navbar = ({ className = '' }) => {
 
     return (
         <header
-            className={`
-            ${className}
-            h-16 bg-dark-surface
-            border-b border-primary/10
-            flex items-center justify-between px-4
-          `}
+            className={` 
+                ${className}
+                h-12 bg-dark-surface /* Match Sidebar header height */
+                border-b border-primary/10
+                flex items-center justify-between px-4 w-full
+            `}
         >
-            <div className="flex items-center">
-                <h1 className="text-lg font-medium">{getPageTitle()}</h1>
-            </div>
-
-            <div className="flex items-center gap-4">
-                {/* Theme Toggle Button */}
+            <h1 className="text-sm font-medium">{getPageTitle()}</h1>
+            <div className="flex items-center gap-3">
                 <button
                     onClick={toggleTheme}
-                    className="p-2 rounded-lg hover:bg-primary/10 transition-colors"
-                    aria-label={`Switch to ${
-                        theme === 'dark' ? 'light' : 'dark'
-                    } theme`}
+                    className="p-2 rounded hover:bg-primary/10 transition-colors"
                 >
                     {theme === 'dark' ? (
-                        <Icons.Sun className="w-5 h-5" />
+                        <Icons.Sun className="w-4 h-4" />
                     ) : (
-                        <Icons.Moon className="w-5 h-5" />
+                        <Icons.Moon className="w-4 h-4" />
                     )}
                 </button>
-
-                {/* Profile Section - We can expand this later */}
-                <div className="flex items-center">
-                    <div className="w-8 h-8 bg-primary/20 rounded-full" />
-                </div>
+                <div className="w-6 h-6 bg-primary/20 rounded-full" />
             </div>
         </header>
     );

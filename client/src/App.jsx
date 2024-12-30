@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import Cases from './pages/Cases';
@@ -14,6 +16,7 @@ function App() {
                     <Route path="/settings" element={<Settings />} />
                 </Routes>
             </Layout>
+            <ToastContainer />
         </Router>
     );
 }

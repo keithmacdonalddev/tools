@@ -1,24 +1,26 @@
 // server/routes/caseRoutes.js
+import express from 'express';
+import {
+    getCases,
+    getCase,
+    createCase,
+    updateCase,
+    deleteCase,
+    getCustomFields,
+    addCustomField,
+    deleteCustomField,
+} from '../controllers/caseController.js';
 
-const express = require('express');
-const caseController = require('../controllers/caseController');
 const router = express.Router();
 
 // Case routes
-router.route('/').get(caseController.getCases).post(caseController.createCase);
+router.route('/').get(getCases).post(createCase);
 
-router
-    .route('/:id')
-    .get(caseController.getCase)
-    .patch(caseController.updateCase)
-    .delete(caseController.deleteCase);
+router.route('/:id').get(getCase).put(updateCase).delete(deleteCase);
 
 // Custom fields routes
-router
-    .route('/custom-fields')
-    .get(caseController.getCustomFields)
-    .post(caseController.addCustomField);
+router.route('/custom-fields').get(getCustomFields).post(addCustomField);
 
-router.route('/custom-fields/:id').delete(caseController.deleteCustomField);
+router.route('/custom-fields/:id').delete(deleteCustomField);
 
-module.exports = router;
+export default router;

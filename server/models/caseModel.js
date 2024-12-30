@@ -1,6 +1,5 @@
 // server/models/caseModel.js
-
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // Schema for custom fields
 const customFieldSchema = new mongoose.Schema({
@@ -86,4 +85,4 @@ caseSchema.index({
 const Case = mongoose.model('Case', caseSchema);
 const CustomField = mongoose.model('CustomField', customFieldSchema);
 
-module.exports = { Case, CustomField };
+export { Case, CustomField };

@@ -4,6 +4,11 @@
 
 @layer base {
     :root {
+        --background: 26 26 26; /* Default dark background */
+        --text: 255 255 255; /* Default light text */
+    }
+
+    [data-theme='light'] {
         --background: 255 255 255;
         --text: 0 0 0;
     }
@@ -19,13 +24,15 @@
         margin: 0;
         min-width: 320px;
         min-height: 100vh;
+
+        font-size: 14px; /* Smaller base font size */
     }
 }
 
 @layer components {
     /* Custom scrollbar for webkit browsers */
     ::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
     }
 
     ::-webkit-scrollbar-track {
@@ -46,22 +53,15 @@
 }
 
 @layer utilities {
-    /* Transition classes */
-    .fade-enter {
-        opacity: 0;
+    .sidebar {
+        transition: width 0.3s ease-in-out;
     }
 
-    .fade-enter-active {
-        opacity: 1;
-        transition: opacity 200ms ease-in;
+    .main-content {
+        transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
     }
 
-    .fade-exit {
-        opacity: 1;
-    }
-
-    .fade-exit-active {
-        opacity: 0;
-        transition: opacity 200ms ease-out;
+    .min-h-screen {
+        background-color: rgb(var(--background));
     }
 }

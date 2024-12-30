@@ -1,5 +1,3 @@
-// client/src/features/cases/slice/casesSlice.js
-
 import {
     createSlice,
     createAsyncThunk,
@@ -7,7 +5,22 @@ import {
 } from '@reduxjs/toolkit';
 import { casesApi } from '../../../services/api';
 
-// Async thunks (keep all existing thunks)
+// Async thunk to add a case
+export const addCase = createAsyncThunk(
+    'cases/addCase',
+    async (caseData, { rejectWithValue }) => {
+        try {
+            const response = await casesApi.createCase(caseData);
+            console.log('Request to API successful:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('API error:', error.response?.data || error.message);
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+// Async thunk to fetch cases
 export const fetchCases = createAsyncThunk(
     'cases/fetchCases',
     async (params, { rejectWithValue }) => {
@@ -15,12 +28,10 @@ export const fetchCases = createAsyncThunk(
             const response = await casesApi.getCases(params);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.response.data);
+            return rejectWithValue(error.response?.data || error.message);
         }
     }
 );
-
-// ... (keep all other existing thunks)
 
 const casesSlice = createSlice({
     name: 'cases',
@@ -28,6 +39,7 @@ const casesSlice = createSlice({
         cases: [],
         currentCase: null,
         fieldDefinitions: [
+            // Default fields
             {
                 id: 'caseNumber',
                 label: 'Case Number',
@@ -70,8 +82,7 @@ const casesSlice = createSlice({
             total: 0,
             pages: 0,
         },
-        // Add new state for view management
-        viewType: 'table',
+        viewType: 'table', // Default view type
         searchQuery: '',
         filters: {
             status: 'all',
@@ -85,7 +96,6 @@ const casesSlice = createSlice({
         clearError: (state) => {
             state.error = null;
         },
-        // Add new reducers for view management
         setViewType: (state, action) => {
             state.viewType = action.payload;
         },
@@ -96,9 +106,16 @@ const casesSlice = createSlice({
             const { key, value } = action.payload;
             state.filters[key] = value;
         },
+        addCustomField: (state, action) => {
+            state.customFields.push(action.payload);
+        },
+        removeCustomField: (state, action) => {
+            state.customFields = state.customFields.filter(
+                (field) => field.id !== action.payload
+            );
+        },
     },
     extraReducers: (builder) => {
-        // ... (keep all existing extra reducers)
         builder
             .addCase(fetchCases.pending, (state) => {
                 state.status = 'loading';
@@ -111,14 +128,35 @@ const casesSlice = createSlice({
                     total: action.payload.data.total,
                     pages: action.payload.data.pages,
                 };
+            })
+            .addCase(fetchCases.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload;
+            })
+            .addCase(addCase.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(addCase.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.cases.push(action.payload);
+            })
+            .addCase(addCase.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload;
             });
-        // ... (keep all other existing cases)
     },
 });
 
 // Export actions
-export const { setStatus, clearError, setViewType, setSearchQuery, setFilter } =
-    casesSlice.actions;
+export const {
+    setStatus,
+    clearError,
+    setViewType,
+    setSearchQuery,
+    setFilter,
+    addCustomField,
+    removeCustomField,
+} = casesSlice.actions;
 
 // Basic selectors
 export const selectAllCases = (state) => state.cases.cases;
@@ -131,12 +169,12 @@ export const selectFieldDefinitions = (state) => [
 ];
 export const selectPagination = (state) => state.cases.pagination;
 
-// Add new selectors for view management
+// View management selectors
 export const selectViewType = (state) => state.cases.viewType;
 export const selectSearchQuery = (state) => state.cases.searchQuery;
 export const selectFilters = (state) => state.cases.filters;
 
-// Create filtered cases selector using createSelector for memoization
+// Filtered cases selector
 export const selectFilteredCases = createSelector(
     [selectAllCases, selectSearchQuery, selectFilters],
     (cases, searchQuery, filters) => {
