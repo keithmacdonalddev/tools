@@ -28,6 +28,11 @@ mongoose
         process.exit(1);
     });
 
+// Default route
+app.get('/', (req, res) => {
+    res.json({ message: 'API is running...' });
+});
+
 // Middleware to log incoming requests
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -51,11 +56,6 @@ mongoose.connection.on('disconnected', () => {
 
 // Routes
 app.use('/api/cases', caseRoutes);
-
-// Default route
-app.get('/', (req, res) => {
-    res.json({ message: 'API is running...' });
-});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
