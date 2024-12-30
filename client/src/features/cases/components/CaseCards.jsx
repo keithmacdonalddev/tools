@@ -10,17 +10,6 @@ const CaseCards = ({ cases }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // Format date for display
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
     // Handle delete case
     const handleDelete = (caseId) => {
         if (window.confirm('Are you sure you want to delete this case?')) {
@@ -36,17 +25,19 @@ const CaseCards = ({ cases }) => {
                     className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden 
                              hover:border-purple-500 transition-colors duration-200"
                 >
-                    <div className="p-6">
+                    <div className="p-4">
                         <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="text-lg font-semibold text-white mb-1">
-                                    {caseItem.subject}
-                                </h3>
-                                <p className="text-sm text-gray-400">
+                            <div className="flex-1 min-w-0 mr-4">
+                                {/* Case number with truncation */}
+                                <p className="text-sm text-gray-400 truncate">
                                     Case #{caseItem.caseNumber}
                                 </p>
+                                {/* Subject with multi-line truncation */}
+                                <h3 className="text-lg font-semibold text-white mt-1 line-clamp-2">
+                                    {caseItem.subject}
+                                </h3>
                             </div>
-                            <div className="flex space-x-2">
+                            <div className="flex space-x-2 flex-shrink-0">
                                 <button
                                     onClick={() =>
                                         navigate(`/cases/edit/${caseItem.id}`)
@@ -55,7 +46,7 @@ const CaseCards = ({ cases }) => {
                                              transition-colors duration-200"
                                     title="Edit Case"
                                 >
-                                    <IconEdit size={18} />
+                                    <IconEdit size={16} />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(caseItem.id)}
@@ -63,44 +54,18 @@ const CaseCards = ({ cases }) => {
                                              transition-colors duration-200"
                                     title="Delete Case"
                                 >
-                                    <IconTrash size={18} />
+                                    <IconTrash size={16} />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <div>
-                                <label className="text-xs text-gray-400">
-                                    Business Name
-                                </label>
-                                <p className="text-sm text-white">
-                                    {caseItem.businessName}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="text-xs text-gray-400">
-                                    Contact
-                                </label>
-                                <p className="text-sm text-white">
-                                    {caseItem.contactName}
-                                </p>
-                            </div>
-                            {caseItem.description && (
-                                <div>
-                                    <label className="text-xs text-gray-400">
-                                        Description
-                                    </label>
-                                    <p className="text-sm text-white line-clamp-3">
-                                        {caseItem.description}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="mt-4 pt-4 border-t border-gray-700">
-                            <p className="text-xs text-gray-400">
-                                Created: {formatDate(caseItem.createdAt)}
-                            </p>
+                        <div className="flex justify-between items-center text-sm text-gray-400">
+                            <span className="truncate max-w-[120px]">
+                                {caseItem.department}
+                            </span>
+                            <span className="truncate max-w-[80px]">
+                                {caseItem.status}
+                            </span>
                         </div>
                     </div>
                 </div>

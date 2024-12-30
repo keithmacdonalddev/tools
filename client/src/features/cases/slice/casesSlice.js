@@ -1,26 +1,36 @@
+// features/cases/slice/casesSlice.js
+
+// Import necessary functions from Redux Toolkit
 import {
     createSlice,
     createAsyncThunk,
     createSelector,
 } from '@reduxjs/toolkit';
+
+// Import our API service that handles all HTTP requests
 import { casesApi } from '../../../services/api';
 
-// Async thunk to add a case
+// Create an async thunk for adding a new case
 export const addCase = createAsyncThunk(
     'cases/addCase',
     async (caseData, { rejectWithValue }) => {
         try {
+            // Try to create the case via API
             const response = await casesApi.createCase(caseData);
-            console.log('Request to API successful:', response.data);
-            return response.data;
+            // Log success for debugging
+            console.log('Case creation response:', response.data);
+            // Return the case data from the response
+            return response.data.data; // Access the actual case data from the response
         } catch (error) {
+            // Log error for debugging
             console.error('API error:', error.response?.data || error.message);
+            // Return error message which will be available in rejected action
             return rejectWithValue(error.response?.data || error.message);
         }
     }
 );
 
-// Async thunk to fetch cases
+// Create an async thunk for fetching all cases
 export const fetchCases = createAsyncThunk(
     'cases/fetchCases',
     async (params, { rejectWithValue }) => {
@@ -33,45 +43,64 @@ export const fetchCases = createAsyncThunk(
     }
 );
 
+// Create an async thunk for deleting a case
+export const deleteCase = createAsyncThunk(
+    'cases/deleteCase',
+    async (caseId, { rejectWithValue }) => {
+        try {
+            await casesApi.deleteCase(caseId);
+            return caseId;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+// Create the cases slice
 const casesSlice = createSlice({
     name: 'cases',
+    // Initial state of our cases feature
     initialState: {
         cases: [],
         currentCase: null,
         fieldDefinitions: [
-            // Default fields
             {
                 id: 'caseNumber',
                 label: 'Case Number',
                 type: 'text',
                 required: true,
+                isDefault: true,
             },
-            { id: 'subject', label: 'Subject', type: 'text', required: true },
+            {
+                id: 'subject',
+                label: 'Subject',
+                type: 'text',
+                required: true,
+                isDefault: true,
+            },
             {
                 id: 'description',
                 label: 'Description',
                 type: 'textarea',
                 required: true,
+                isDefault: true,
             },
-            {
-                id: 'contactName',
-                label: 'Contact Name',
-                type: 'text',
-                required: true,
-            },
-            {
-                id: 'businessName',
-                label: 'Business Name',
-                type: 'text',
-                required: true,
-            },
-            { id: 'coid', label: 'COID', type: 'text', required: true },
-            { id: 'mid', label: 'MID', type: 'text', required: true },
             {
                 id: 'department',
                 label: 'Department',
-                type: 'text',
+                type: 'select',
+                options: ['Payments', 'Payroll', 'QBO'],
                 required: true,
+                isDefault: true,
+            },
+            {
+                id: 'status',
+                label: 'Status',
+                type: 'select',
+                options: ['open', 'closed'],
+                defaultValue: 'open',
+                required: true,
+                isDefault: true,
             },
         ],
         customFields: [],
@@ -82,13 +111,14 @@ const casesSlice = createSlice({
             total: 0,
             pages: 0,
         },
-        viewType: 'table', // Default view type
+        viewType: 'table',
         searchQuery: '',
         filters: {
             status: 'all',
             priority: 'all',
         },
     },
+    // Regular reducers for synchronous actions
     reducers: {
         setStatus: (state, action) => {
             state.status = action.payload;
@@ -115,8 +145,10 @@ const casesSlice = createSlice({
             );
         },
     },
+    // Handle async action lifecycles
     extraReducers: (builder) => {
         builder
+            // Handle fetchCases states
             .addCase(fetchCases.pending, (state) => {
                 state.status = 'loading';
             })
@@ -133,21 +165,45 @@ const casesSlice = createSlice({
                 state.status = 'failed';
                 state.error = action.payload;
             })
+            // Handle addCase states
             .addCase(addCase.pending, (state) => {
                 state.status = 'loading';
             })
             .addCase(addCase.fulfilled, (state, action) => {
                 state.status = 'succeeded';
-                state.cases.push(action.payload);
+                // Add the new case to the beginning of the cases array
+                state.cases.unshift(action.payload);
+                // Update pagination total
+                state.pagination.total += 1;
+                // Recalculate pages if needed
+                state.pagination.pages = Math.ceil(state.pagination.total / 10); // assuming 10 items per page
             })
             .addCase(addCase.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload;
+            })
+            // Handle deleteCase states
+            .addCase(deleteCase.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(deleteCase.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.cases = state.cases.filter(
+                    (case_) => case_.id !== action.payload
+                );
+                // Update pagination total
+                state.pagination.total -= 1;
+                // Recalculate pages if needed
+                state.pagination.pages = Math.ceil(state.pagination.total / 10);
+            })
+            .addCase(deleteCase.rejected, (state, action) => {
                 state.status = 'failed';
                 state.error = action.payload;
             });
     },
 });
 
-// Export actions
+// Export individual actions
 export const {
     setStatus,
     clearError,
@@ -168,19 +224,17 @@ export const selectFieldDefinitions = (state) => [
     ...state.cases.customFields,
 ];
 export const selectPagination = (state) => state.cases.pagination;
-
-// View management selectors
 export const selectViewType = (state) => state.cases.viewType;
 export const selectSearchQuery = (state) => state.cases.searchQuery;
 export const selectFilters = (state) => state.cases.filters;
 
-// Filtered cases selector
+// Create a memoized selector for filtered cases
 export const selectFilteredCases = createSelector(
     [selectAllCases, selectSearchQuery, selectFilters],
     (cases, searchQuery, filters) => {
         let filteredCases = [...cases];
 
-        // Apply search filter
+        // Apply search filter if there's a query
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             filteredCases = filteredCases.filter(
@@ -191,17 +245,10 @@ export const selectFilteredCases = createSelector(
             );
         }
 
-        // Apply status filter
+        // Apply status filter if not showing all
         if (filters.status !== 'all') {
             filteredCases = filteredCases.filter(
                 (case_) => case_.status === filters.status
-            );
-        }
-
-        // Apply priority filter
-        if (filters.priority !== 'all') {
-            filteredCases = filteredCases.filter(
-                (case_) => case_.priority === filters.priority
             );
         }
 

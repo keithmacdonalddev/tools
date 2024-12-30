@@ -1,11 +1,6 @@
 // features/cases/components/CaseTable.jsx
 
-import {
-    IconArrowUp,
-    IconArrowDown,
-    IconEdit,
-    IconTrash,
-} from '@tabler/icons-react';
+import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { useDispatch } from 'react-redux';
 import { deleteCase } from '../slice/casesSlice';
 import { useNavigate } from 'react-router-dom';
@@ -15,25 +10,14 @@ const CaseTable = ({ cases, sortField, sortDirection, onSort }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // Column definitions
+    // Column definitions with specific widths for consistent sizing
     const columns = [
-        { id: 'caseNumber', label: 'Case Number' },
-        { id: 'subject', label: 'Subject' },
-        { id: 'businessName', label: 'Business Name' },
-        { id: 'contactName', label: 'Contact Name' },
-        { id: 'createdAt', label: 'Created At' },
+        { id: 'caseNumber', label: 'Case #', width: 'w-[100px]' }, // Fixed width for case numbers
+        { id: 'subject', label: 'Subject', width: 'w-full' }, // Takes remaining space
+        { id: 'department', label: 'Department', width: 'w-[100px]' }, // Fixed width for department
+        { id: 'status', label: 'Status', width: 'w-[80px]' }, // Fixed width for status
+        { id: 'actions', label: '', width: 'w-[80px]' }, // Fixed width for action icons
     ];
-
-    // Format date for display
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
 
     // Handle delete case
     const handleDelete = (caseId) => {
@@ -50,27 +34,34 @@ const CaseTable = ({ cases, sortField, sortDirection, onSort }) => {
                         {columns.map((column) => (
                             <th
                                 key={column.id}
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-300 
-                                         uppercase tracking-wider cursor-pointer hover:bg-gray-700"
-                                onClick={() => onSort(column.id)}
+                                className={`px-4 py-3 text-left text-xs font-medium text-gray-300 
+                                         uppercase tracking-wider ${
+                                             column.width
+                                         } 
+                                         ${
+                                             column.id !== 'actions'
+                                                 ? 'cursor-pointer hover:bg-gray-700'
+                                                 : ''
+                                         }`}
+                                onClick={() =>
+                                    column.id !== 'actions' && onSort(column.id)
+                                }
                             >
                                 <div className="flex items-center space-x-1">
-                                    <span>{column.label}</span>
+                                    <span className="truncate">
+                                        {column.label}
+                                    </span>
                                     {sortField === column.id &&
-                                        (sortDirection === 'asc' ? (
-                                            <IconArrowUp size={14} />
-                                        ) : (
-                                            <IconArrowDown size={14} />
-                                        ))}
+                                        column.id !== 'actions' && (
+                                            <span>
+                                                {sortDirection === 'asc'
+                                                    ? '↑'
+                                                    : '↓'}
+                                            </span>
+                                        )}
                                 </div>
                             </th>
                         ))}
-                        <th
-                            className="px-6 py-3 text-right text-xs font-medium text-gray-300 
-                                     uppercase tracking-wider"
-                        >
-                            Actions
-                        </th>
                     </tr>
                 </thead>
                 <tbody className="bg-gray-900 divide-y divide-gray-700">
@@ -79,22 +70,36 @@ const CaseTable = ({ cases, sortField, sortDirection, onSort }) => {
                             key={caseItem.id}
                             className="hover:bg-gray-800 transition-colors duration-200"
                         >
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                                {caseItem.caseNumber}
+                            {/* Case Number - truncate if over 10 digits */}
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-white">
+                                <span className="inline-block w-[100px] truncate">
+                                    {caseItem.caseNumber}
+                                </span>
                             </td>
-                            <td className="px-6 py-4 text-sm text-white">
-                                {caseItem.subject}
+
+                            {/* Subject - allows wrapping with ellipsis */}
+                            <td className="px-4 py-2 text-sm text-white">
+                                <div className="line-clamp-2">
+                                    {caseItem.subject}
+                                </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                                {caseItem.businessName}
+
+                            {/* Department - fixed width with truncation */}
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-white">
+                                <span className="inline-block w-[100px] truncate">
+                                    {caseItem.department}
+                                </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                                {caseItem.contactName}
+
+                            {/* Status - fixed width with truncation */}
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-white">
+                                <span className="inline-block w-[80px] truncate">
+                                    {caseItem.status}
+                                </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                                {formatDate(caseItem.createdAt)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+
+                            {/* Action Icons */}
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
                                 <div className="flex justify-end space-x-2">
                                     <button
                                         onClick={() =>
@@ -106,7 +111,7 @@ const CaseTable = ({ cases, sortField, sortDirection, onSort }) => {
                                                  transition-colors duration-200"
                                         title="Edit Case"
                                     >
-                                        <IconEdit size={18} />
+                                        <IconEdit size={16} />
                                     </button>
                                     <button
                                         onClick={() =>
@@ -116,7 +121,7 @@ const CaseTable = ({ cases, sortField, sortDirection, onSort }) => {
                                                  transition-colors duration-200"
                                         title="Delete Case"
                                     >
-                                        <IconTrash size={18} />
+                                        <IconTrash size={16} />
                                     </button>
                                 </div>
                             </td>
