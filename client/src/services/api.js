@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // Create axios instance with base URL from environment variables
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
+    // baseURL: import.meta.env.VITE_API_URL,
+    baseURL: 'https://tools-api-chi.vercel.app/api', // Fixed hardcoded URL for testing
     headers: {
         'Content-Type': 'application/json',
     },
