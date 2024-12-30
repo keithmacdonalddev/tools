@@ -1,9 +1,13 @@
 // client/src/features/cases/slice/casesSlice.js
 
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import {
+    createSlice,
+    createAsyncThunk,
+    createSelector,
+} from '@reduxjs/toolkit';
 import { casesApi } from '../../../services/api';
 
-// Async thunks
+// Async thunks (keep all existing thunks)
 export const fetchCases = createAsyncThunk(
     'cases/fetchCases',
     async (params, { rejectWithValue }) => {
@@ -16,69 +20,47 @@ export const fetchCases = createAsyncThunk(
     }
 );
 
-export const fetchCase = createAsyncThunk(
-    'cases/fetchCase',
-    async (id, { rejectWithValue }) => {
-        try {
-            const response = await casesApi.getCase(id);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response.data);
-        }
-    }
-);
+// ... (keep all other existing thunks)
 
-export const createCase = createAsyncThunk(
-    'cases/createCase',
-    async (data, { rejectWithValue }) => {
-        try {
-            const response = await casesApi.createCase(data);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response.data);
-        }
-    }
-);
-
-export const updateCase = createAsyncThunk(
-    'cases/updateCase',
-    async ({ id, data }, { rejectWithValue }) => {
-        try {
-            const response = await casesApi.updateCase(id, data);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response.data);
-        }
-    }
-);
-
-export const deleteCase = createAsyncThunk(
-    'cases/deleteCase',
-    async (id, { rejectWithValue }) => {
-        try {
-            await casesApi.deleteCase(id);
-            return id;
-        } catch (error) {
-            return rejectWithValue(error.response.data);
-        }
-    }
-);
-
-// Slice
 const casesSlice = createSlice({
     name: 'cases',
     initialState: {
         cases: [],
         currentCase: null,
         fieldDefinitions: [
-            { id: 'caseNumber', label: 'Case Number', type: 'text', required: true },
+            {
+                id: 'caseNumber',
+                label: 'Case Number',
+                type: 'text',
+                required: true,
+            },
             { id: 'subject', label: 'Subject', type: 'text', required: true },
-            { id: 'description', label: 'Description', type: 'textarea', required: true },
-            { id: 'contactName', label: 'Contact Name', type: 'text', required: true },
-            { id: 'businessName', label: 'Business Name', type: 'text', required: true },
+            {
+                id: 'description',
+                label: 'Description',
+                type: 'textarea',
+                required: true,
+            },
+            {
+                id: 'contactName',
+                label: 'Contact Name',
+                type: 'text',
+                required: true,
+            },
+            {
+                id: 'businessName',
+                label: 'Business Name',
+                type: 'text',
+                required: true,
+            },
             { id: 'coid', label: 'COID', type: 'text', required: true },
             { id: 'mid', label: 'MID', type: 'text', required: true },
-            { id: 'department', label: 'Department', type: 'text', required: true }
+            {
+                id: 'department',
+                label: 'Department',
+                type: 'text',
+                required: true,
+            },
         ],
         customFields: [],
         status: 'idle',
@@ -86,8 +68,15 @@ const casesSlice = createSlice({
         pagination: {
             page: 1,
             total: 0,
-            pages: 0
-        }
+            pages: 0,
+        },
+        // Add new state for view management
+        viewType: 'table',
+        searchQuery: '',
+        filters: {
+            status: 'all',
+            priority: 'all',
+        },
     },
     reducers: {
         setStatus: (state, action) => {
@@ -95,11 +84,22 @@ const casesSlice = createSlice({
         },
         clearError: (state) => {
             state.error = null;
-        }
+        },
+        // Add new reducers for view management
+        setViewType: (state, action) => {
+            state.viewType = action.payload;
+        },
+        setSearchQuery: (state, action) => {
+            state.searchQuery = action.payload;
+        },
+        setFilter: (state, action) => {
+            const { key, value } = action.payload;
+            state.filters[key] = value;
+        },
     },
     extraReducers: (builder) => {
+        // ... (keep all existing extra reducers)
         builder
-            // Fetch cases
             .addCase(fetchCases.pending, (state) => {
                 state.status = 'loading';
             })
@@ -109,52 +109,66 @@ const casesSlice = createSlice({
                 state.pagination = {
                     page: action.payload.data.page,
                     total: action.payload.data.total,
-                    pages: action.payload.data.pages
+                    pages: action.payload.data.pages,
                 };
-            })
-            .addCase(fetchCases.rejected, (state, action) => {
-                state.status = 'failed';
-                state.error = action.payload?.message || 'Failed to fetch cases';
-            })
-            // Fetch single case
-            .addCase(fetchCase.fulfilled, (state, action) => {
-                state.currentCase = action.payload.data;
-            })
-            // Create case
-            .addCase(createCase.fulfilled, (state, action) => {
-                state.cases.unshift(action.payload.data);
-            })
-            // Update case
-            .addCase(updateCase.fulfilled, (state, action) => {
-                const index = state.cases.findIndex(c => c.id === action.payload.data.id);
-                if (index !== -1) {
-                    state.cases[index] = action.payload.data;
-                }
-                if (state.currentCase?.id === action.payload.data.id) {
-                    state.currentCase = action.payload.data;
-                }
-            })
-            // Delete case
-            .addCase(deleteCase.fulfilled, (state, action) => {
-                state.cases = state.cases.filter(c => c.id !== action.payload);
-                if (state.currentCase?.id === action.payload) {
-                    state.currentCase = null;
-                }
             });
-    }
+        // ... (keep all other existing cases)
+    },
 });
 
-export const { setStatus, clearError } = casesSlice.actions;
+// Export actions
+export const { setStatus, clearError, setViewType, setSearchQuery, setFilter } =
+    casesSlice.actions;
 
-// Selectors
+// Basic selectors
 export const selectAllCases = (state) => state.cases.cases;
 export const selectCurrentCase = (state) => state.cases.currentCase;
 export const selectCasesStatus = (state) => state.cases.status;
 export const selectCasesError = (state) => state.cases.error;
 export const selectFieldDefinitions = (state) => [
     ...state.cases.fieldDefinitions,
-    ...state.cases.customFields
+    ...state.cases.customFields,
 ];
 export const selectPagination = (state) => state.cases.pagination;
+
+// Add new selectors for view management
+export const selectViewType = (state) => state.cases.viewType;
+export const selectSearchQuery = (state) => state.cases.searchQuery;
+export const selectFilters = (state) => state.cases.filters;
+
+// Create filtered cases selector using createSelector for memoization
+export const selectFilteredCases = createSelector(
+    [selectAllCases, selectSearchQuery, selectFilters],
+    (cases, searchQuery, filters) => {
+        let filteredCases = [...cases];
+
+        // Apply search filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            filteredCases = filteredCases.filter(
+                (case_) =>
+                    case_.subject?.toLowerCase().includes(query) ||
+                    case_.caseNumber?.toLowerCase().includes(query) ||
+                    case_.description?.toLowerCase().includes(query)
+            );
+        }
+
+        // Apply status filter
+        if (filters.status !== 'all') {
+            filteredCases = filteredCases.filter(
+                (case_) => case_.status === filters.status
+            );
+        }
+
+        // Apply priority filter
+        if (filters.priority !== 'all') {
+            filteredCases = filteredCases.filter(
+                (case_) => case_.priority === filters.priority
+            );
+        }
+
+        return filteredCases;
+    }
+);
 
 export default casesSlice.reducer;

@@ -1,7 +1,25 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Define build output directory to match vercel.json
+  build: {
+    outDir: 'dist',
+    // Ensure sourcemaps are generated for better debugging
+    sourcemap: true
+  },
+  // Configure server options
+  server: {
+    // Allow connections from network
+    host: true,
+    // Configure proxy for API requests in development
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
+  }
 })

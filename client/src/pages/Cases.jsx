@@ -1,34 +1,58 @@
-// Import standard Redux hooks instead of custom hooks
+// client/src/pages/Cases.jsx
 import { useDispatch, useSelector } from 'react-redux';
-
-// Import Redux state and actions
 import {
     selectFilteredCases,
     selectViewType,
     selectSearchQuery,
+    selectCasesStatus,
+    selectCasesError,
     setViewType,
     setSearchQuery,
+    fetchCases,
 } from '../features/cases/slice/casesSlice';
+import { useEffect } from 'react';
 
-// Main Cases component
 const Cases = () => {
-    // Use standard Redux hooks
     const dispatch = useDispatch();
     const cases = useSelector(selectFilteredCases);
     const viewType = useSelector(selectViewType);
     const searchQuery = useSelector(selectSearchQuery);
+    const status = useSelector(selectCasesStatus);
+    const error = useSelector(selectCasesError);
 
-    // Handler to change view type (table, card, or list)
+    // Fetch cases on component mount
+    useEffect(() => {
+        if (status === 'idle') {
+            dispatch(fetchCases());
+        }
+    }, [dispatch, status]);
+
     const handleViewChange = (type) => {
         dispatch(setViewType(type));
     };
 
-    // Handler for search input changes
     const handleSearch = (e) => {
         dispatch(setSearchQuery(e.target.value));
     };
 
-    // Rest of the component remains the same...
+    // Loading state
+    if (status === 'loading') {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-primary">Loading cases...</div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (status === 'failed') {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-red-500">Error: {error}</div>
+            </div>
+        );
+    }
+
     const renderCases = () => {
         switch (viewType) {
             case 'table':
@@ -41,6 +65,7 @@ const Cases = () => {
                                     <th className="p-4">Subject</th>
                                     <th className="p-4">Status</th>
                                     <th className="p-4">Priority</th>
+                                    <th className="p-4">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -56,6 +81,9 @@ const Cases = () => {
                                         <td className="p-4">{case_.status}</td>
                                         <td className="p-4">
                                             {case_.priority}
+                                        </td>
+                                        <td className="p-4">
+                                            {/* Add action buttons here */}
                                         </td>
                                     </tr>
                                 ))}
